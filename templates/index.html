@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Searching On Road - Algoritma A*</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SEARCHING ON ROAD</h1>
+            <p>Implementasi Algoritma A* untuk Mencari Rute Terpendek</p>
+        </header>
+
+        <main>
+            <div class="menu-card">
+                <div class="city-selector">
+                    <label for="start-city">Kota Asal:</label>
+                    <select id="start-city">
+                        <option value="A">Kota A</option>
+                        <option value="B">Kota B</option>
+                        <option value="C">Kota C</option>
+                        <option value="D">Kota D</option>
+                        <option value="E">Kota E</option>
+                        <option value="F">Kota F</option>
+                    </select>
+
+                    <label for="end-city">Kota Tujuan:</label>
+                    <select id="end-city">
+                        <option value="F">Kota F</option>
+                        <option value="E">Kota E</option>
+                        <option value="D">Kota D</option>
+                        <option value="C">Kota C</option>
+                        <option value="B">Kota B</option>
+                        <option value="A">Kota A</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button id="play-btn" class="btn primary">Pergi ke Permainan</button>
+                    <button id="settings-btn" class="btn secondary">Setting Permainan</button>
+                </div>
+            </div>
+
+            <div id="result" class="result-container"></div>
+        </main>
+
+        <footer>
+            <p>© 2023 Searching On Road - Implementasi Algoritma AI</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
