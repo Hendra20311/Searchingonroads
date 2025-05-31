@@ -13,32 +13,56 @@ cities = {
 }
 
 def a_star(start, goal):
-    # Implementasi sederhana algoritma A*
+    # Implementasi algoritma A* yang mengembalikan langkah-langkah
     open_set = {start}
     came_from = {}
     g_score = {city: float('inf') for city in cities}
     g_score[start] = 0
     f_score = {city: float('inf') for city in cities}
     f_score[start] = heuristic(start, goal)
-
+    
+    # Untuk menyimpan langkah-langkah eksplorasi
+    steps = []
+    
     while open_set:
         current = min(open_set, key=lambda city: f_score[city])
         
+        # Catat node yang sedang dieksplorasi
+        explored_nodes = [current]
+        explored_edges = []
+        
         if current == goal:
-            return reconstruct_path(came_from, current)
+            path = reconstruct_path(came_from, current)
+            # Tambahkan langkah terakhir
+            steps.append({
+                'exploredNodes': explored_nodes,
+                'exploredEdges': explored_edges
+            })
+            return path, steps
         
         open_set.remove(current)
         
         for neighbor, cost in cities[current].items():
             tentative_g = g_score[current] + cost
+            
             if tentative_g < g_score[neighbor]:
                 came_from[neighbor] = current
                 g_score[neighbor] = tentative_g
                 f_score[neighbor] = g_score[neighbor] + heuristic(neighbor, goal)
+                
                 if neighbor not in open_set:
                     open_set.add(neighbor)
+                
+                # Catat edge yang dieksplorasi
+                explored_edges.append(f"{current}-{neighbor}")
+        
+        # Simpan langkah saat ini
+        steps.append({
+            'exploredNodes': explored_nodes,
+            'exploredEdges': explored_edges
+        })
     
-    return None
+    return None, steps
 
 def heuristic(city, goal):
     # Heuristik sederhana (bisa diganti dengan jarak sebenarnya)
@@ -62,12 +86,14 @@ def find_path():
     start = data['start']
     goal = data['end']
     
-    path = a_star(start, goal)
+    path, steps = a_star(start, goal)
     if path:
+        distance = sum(cities[path[i]][path[i+1]] for i in range(len(path)-1))
         return jsonify({
             'status': 'success',
             'path': path,
-            'distance': sum(cities[path[i]][path[i+1]] for i in range(len(path)-1))
+            'steps': steps,
+            'distance': distance
         })
     else:
         return jsonify({'status': 'error', 'message': 'Path not found'})
