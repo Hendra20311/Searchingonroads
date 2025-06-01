@@ -13,7 +13,11 @@
             <h1>PENGATURAN KOTA</h1>
             <p>Kelola kota, jarak, dan nilai heuristik untuk algoritma A*</p>
         </header>
-
+     <div class="mb-3">
+    <label for="heuristic-scale" class="form-label white-text">Scale Heuristik</label>
+    <input type="number" class="form-control" id="heuristic-scale" min="0" value="{{ heuristic_scale }}" placeholder="0 untuk disable">
+    <div class="form-text white-text">Bagi nilai heuristik dengan angka ini (0 = tanpa scaling)</div>
+</div>
         <main>
             <div class="settings-container">
                 <!-- Daftar Kota -->

@@ -332,3 +332,7 @@ footer p {
         transform: translateY(0);
     }
 }
+
+.white-text {
+    color: white !important;
+}

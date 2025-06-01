@@ -31,30 +31,42 @@ DEFAULT_DATA = {
         'D': [400, 250],
         'E': [550, 350],
         'F': [700, 250]
-    }
+    },
+    "heuristic_scale": 0
 }
 
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, 'r') as f:
+                data = json.load(f)
+                if 'heuristic_scale' not in data:
+                    data['heuristic_scale'] = 0
+                return data
+        except json.JSONDecodeError:
+            print("Error decoding JSON from graph_data.json, using default data.")
+            return DEFAULT_DATA
     return DEFAULT_DATA
 
 def save_data(data):
     with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=2)
 
-def a_star(start, goal):
+def a_star(start, goal, heuristic_scale=0):
     data = load_data()
     cities = data["cities"]
     heuristics = data["heuristics"]
-    
+
     open_set = {start}
     came_from = {}
     g_score = {city: float('inf') for city in cities}
     g_score[start] = 0
     f_score = {city: float('inf') for city in cities}
-    f_score[start] = heuristics.get(start, {}).get(goal, 0)
+    
+    h_start = heuristics.get(start, {}).get(goal, 0)
+    if heuristic_scale != 0:
+        h_start = h_start / heuristic_scale
+    f_score[start] = h_start
 
     steps = []
 
@@ -64,7 +76,11 @@ def a_star(start, goal):
         current = min(open_set, key=lambda city: f_score[city])
         print(f"\n[A*] Menjelajahi node: {current}")
         print(f"  g({current}) = {g_score[current]}")
-        print(f"  h({current}) = {heuristics.get(current, {}).get(goal, 0)}")
+        
+        h_current = heuristics.get(current, {}).get(goal, 0)
+        if heuristic_scale != 0:
+            h_current = h_current / heuristic_scale
+        print(f"  h({current}) = {h_current}")
         print(f"  f({current}) = {f_score[current]}")
         
         explored_nodes = [current]
@@ -88,7 +104,10 @@ def a_star(start, goal):
             if tentative_g < g_score[neighbor]:
                 came_from[neighbor] = current
                 g_score[neighbor] = tentative_g
+                
                 h = heuristics.get(neighbor, {}).get(goal, 0)
+                if heuristic_scale != 0:
+                    h = h / heuristic_scale
                 f_score[neighbor] = tentative_g + h
                 open_set.add(neighbor)
                 print(f"    ✅ Jalur lebih baik ditemukan ke {neighbor}.")
@@ -101,7 +120,6 @@ def a_star(start, goal):
 
     print("[A*] Tidak ada jalur yang ditemukan.")
     return None, steps
-
 
 def reconstruct_path(came_from, current):
     path = [current]
@@ -135,15 +153,17 @@ def settings():
     return render_template('settings.html',
                            cities=data["cities"],
                            heuristics=data["heuristics"],
-                           positions=data["positions"])
+                           positions=data["positions"],
+                           heuristic_scale=data.get("heuristic_scale", 0))
 
 @app.route('/find-path', methods=['POST'])
 def find_path():
     data = request.json
     start = data['start']
     goal = data['end']
+    heuristic_scale = data.get('heuristicScale', 0)
     
-    path, steps = a_star(start, goal)
+    path, steps = a_star(start, goal, heuristic_scale)
     if path:
         graph_data = load_data()
         cities = graph_data["cities"]
@@ -157,6 +177,16 @@ def add_city():
     city_data = request.json
     new_city = city_data['name']
 
+    if new_city in data["cities"]:
+        return jsonify({'status': 'error', 'message': f'Kota dengan nama {new_city} sudah ada.'})
+
+    # Validasi koneksi duplikat
+    connections = {}
+    for conn in city_data['connections']:
+        if conn['city'] in connections:
+            return jsonify({'status': 'error', 'message': f'Koneksi duplikat ke kota {conn["city"]} ditemukan.'})
+        connections[conn['city']] = conn['distance']
+
     data["cities"][new_city] = {}
     data["positions"][new_city] = city_data['position']
     data["heuristics"][new_city] = {}
@@ -167,10 +197,10 @@ def add_city():
             data["heuristics"][new_city][city] = val
             data["heuristics"][city][new_city] = val
 
-    for conn in city_data['connections']:
-        target = conn['city']
-        distance = conn['distance']
+    for target, distance in connections.items():
         data["cities"][new_city][target] = distance
+        if target not in data["cities"]:
+            data["cities"][target] = {}
         data["cities"][target][new_city] = distance
 
     data = update_heuristics(data)
@@ -183,21 +213,30 @@ def edit_city():
     city_data = request.json
     city_name = city_data['name']
 
+    # Validasi koneksi duplikat
+    connections = {}
+    for conn in city_data['connections']:
+        if conn['city'] in connections:
+            return jsonify({'status': 'error', 'message': f'Koneksi duplikat ke kota {conn["city"]} ditemukan.'})
+        connections[conn['city']] = conn['distance']
+    
     data["positions"][city_name] = city_data['position']
 
     for city, val in city_data['heuristics'].items():
         data["heuristics"].setdefault(city_name, {})[city] = val
         data["heuristics"].setdefault(city, {})[city_name] = val
 
+    # Hapus koneksi lama
     for target in list(data["cities"][city_name].keys()):
         if city_name in data["cities"].get(target, {}):
             del data["cities"][target][city_name]
 
+    # Tambahkan koneksi baru
     data["cities"][city_name] = {}
-    for conn in city_data['connections']:
-        target = conn['city']
-        distance = conn['distance']
+    for target, distance in connections.items():
         data["cities"][city_name][target] = distance
+        if target not in data["cities"]:
+            data["cities"][target] = {}
         data["cities"][target][city_name] = distance
 
     data = update_heuristics(data)
@@ -233,11 +272,30 @@ def get_graph_data():
 @app.route('/get-full-graph-data', methods=['GET'])
 def get_full_graph_data():
     data = load_data()
+    heuristic_scale = data.get("heuristic_scale", 0)
+    scaled_heuristics = {}
+    for city, heuristics_for_city in data["heuristics"].items():
+        scaled_heuristics[city] = {}
+        for dest, heuristic_val in heuristics_for_city.items():
+            if heuristic_scale != 0:
+                scaled_heuristics[city][dest] = round(heuristic_val / heuristic_scale, 2)
+            else:
+                scaled_heuristics[city][dest] = heuristic_val
     return jsonify({
         'cities': data["cities"],
         'positions': data["positions"],
-        'heuristics': data["heuristics"]
+        'heuristics': data["heuristics"],
+        'heuristic_scale': heuristic_scale,
+        'scaled_heuristics': scaled_heuristics
     })
+
+@app.route('/save-heuristic-scale', methods=['POST'])
+def save_heuristic_scale():
+    data = load_data()
+    scale = request.json.get('scale', 0)
+    data['heuristic_scale'] = int(scale)
+    save_data(data)
+    return jsonify({'status': 'success'})
 
 if __name__ == '__main__':
     app.run(debug=True)

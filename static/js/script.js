@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let startCity = 'A';
     let endCity = 'F';
     let animationInterval = null;
+    let currentHeuristicScale = 0;
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let panOffset = { x: 0, y: 0 };
 
     const graphConfig = {
         nodeRadius: 25,
@@ -31,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawNode(label, x, y, color) {
         ctx.beginPath();
-        ctx.arc(x, y, graphConfig.nodeRadius, 0, Math.PI * 2);
+        ctx.arc(x + panOffset.x, y + panOffset.y, graphConfig.nodeRadius, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
         ctx.strokeStyle = 'black';
@@ -41,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.font = 'bold 16px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('Kota ' + label, x, y);
+        ctx.fillText('Kota ' + label, x + panOffset.x, y + panOffset.y);
     }
 
     function drawEdge(from, to, color) {
@@ -50,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!fromPos || !toPos) return;
 
         ctx.beginPath();
-        ctx.moveTo(fromPos.x, fromPos.y);
-        ctx.lineTo(toPos.x, toPos.y);
+        ctx.moveTo(fromPos.x + panOffset.x, fromPos.y + panOffset.y);
+        ctx.lineTo(toPos.x + panOffset.x, toPos.y + panOffset.y);
         ctx.strokeStyle = color;
         ctx.lineWidth = 3;
         ctx.stroke();
@@ -65,13 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
         ctx.beginPath();
-        ctx.arc(midX, midY, 15, 0, Math.PI * 2);
+        ctx.arc(midX + panOffset.x, midY + panOffset.y, 15, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = 'black';
         ctx.font = '12px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(distance, midX, midY);
+        ctx.fillText(distance, midX + panOffset.x, midY + panOffset.y);
     }
 
     function drawGraph(highlightedNodes = [], highlightedEdges = [], finalPath = []) {
@@ -165,6 +169,39 @@ document.addEventListener('DOMContentLoaded', () => {
         drawGraph();
     }
 
+    function updateCityOptions(selectElement, cities) {
+        selectElement.innerHTML = '';
+        for (const city in cities) {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = `Kota ${city}`;
+            selectElement.appendChild(option);
+        }
+    }
+
+    function handleMouseDown(e) {
+        isDragging = true;
+        dragStart = { x: e.clientX - panOffset.x, y: e.clientY - panOffset.y };
+        canvas.style.cursor = 'grabbing';
+    }
+
+    function handleMouseUp() {
+        isDragging = false;
+        canvas.style.cursor = 'grab';
+    }
+
+    function handleMouseOut() {
+        isDragging = false;
+        canvas.style.cursor = 'grab';
+    }
+
+    function handleMouseMove(e) {
+        if (!isDragging) return;
+        panOffset.x = e.clientX - dragStart.x;
+        panOffset.y = e.clientY - dragStart.y;
+        drawGraph();
+    }
+
     // Bind event
     if (startCitySelect) startCitySelect.addEventListener('change', initializeGraph);
     if (endCitySelect) endCitySelect.addEventListener('change', initializeGraph);
@@ -178,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('/find-path', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ start: startCity, end: endCity })
+                body: JSON.stringify({ start: startCity, end: endCity, heuristicScale: currentHeuristicScale })
             })
             .then(res => res.json())
             .then(data => {
@@ -196,16 +233,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Fetch data from backend to sync everything
-    fetch('/get-full-graph-data')
-        .then(res => res.json())
-        .then(data => {
-            nodePositions = {};
-            for (const [key, val] of Object.entries(data.positions)) {
-                nodePositions[key] = { x: val[0], y: val[1] };
-            }
-            cities = data.cities;
-            heuristics = data.heuristics;
-            initializeGraph();
-        });
+    function fetchGraphData() {
+        fetch('/get-full-graph-data')
+            .then(res => res.json())
+            .then(data => {
+                nodePositions = {};
+                for (const [key, val] of Object.entries(data.positions)) {
+                    nodePositions[key] = { x: val[0], y: val[1] };
+                }
+                cities = data.cities;
+                heuristics = data.heuristics;
+                currentHeuristicScale = data.heuristic_scale || 0;
+            
+                // Perbarui opsi di select start-city dan end-city
+                updateCityOptions(startCitySelect, cities);
+                updateCityOptions(endCitySelect, cities);
+
+                initializeGraph();
+            });
+    }
+
+    if (canvas) {
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseout', handleMouseOut);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.style.cursor = 'grab'; // Set cursor default
+    }
+
+    fetchGraphData();
 });
