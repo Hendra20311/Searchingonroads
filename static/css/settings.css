@@ -1,0 +1,334 @@
+:root {
+    --primary: #1a73e8;
+    --secondary: #34a853;
+    --dark: #202124;
+    --light: #f8f9fa;
+    --warning: #f9ab00;
+    --danger: #ea4335;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1a2a6c, #2a5298);
+    color: white;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin: 2rem 0;
+    padding: 1rem;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #ffd700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.settings-container {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.city-list, .city-form {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.city-list {
+    flex: 1;
+}
+
+.city-form {
+    flex: 2;
+}
+
+.city-list h2, .city-form h2 {
+    margin-bottom: 1.5rem;
+    color: #ffd700;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.5rem;
+}
+
+.city-list-container {
+    max-height: 500px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.city-item {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.city-item:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(5px);
+}
+
+.city-item .name {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.city-item .connections {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn.primary {
+    background: var(--warning);
+    color: var(--dark);
+    box-shadow: 0 4px 10px rgba(249, 171, 0, 0.4);
+}
+
+.btn.secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid var(--warning);
+}
+
+.btn.danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(249, 171, 0, 0.6);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    color: var(--dark);
+}
+
+.connection-item, .heuristic-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.connection-item select, .heuristic-item select {
+    flex: 1;
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--dark);
+}
+
+.connection-item input, .heuristic-item input {
+    width: 100px;
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--dark);
+}
+
+.remove-btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 1rem;
+    opacity: 0.7;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Animasi */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .settings-container {
+        flex-direction: column;
+    }
+}
+
+header p {
+    color: white !important;
+    opacity: 1 !important;
+}
+
+.city-item .connections {
+    color: white !important;
+    opacity: 1 !important;
+}
+
+.city-item .name {
+    color: white !important;
+}
+
+h2.mt-5 {
+    color: white !important;
+}
+
+footer p {
+    color: white !important;
+}
+
+/* MODERN MODAL STYLE */
+.modern-modal {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    animation: fadeInModal 0.35s ease;
+    border: none;
+    overflow: hidden;
+}
+
+.modal-header, .modal-footer {
+    background: transparent;
+    padding: 1.5rem 2rem;
+    border: none;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-title {
+    color: #1a2a6c;
+    font-size: 1.5rem;
+}
+
+.btn-close {
+    filter: brightness(0.4);
+}
+
+.modal .form-label {
+    font-weight: 600;
+    color: #1a2a6c;
+}
+
+.modal .form-control {
+    border-radius: 12px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+}
+
+.modal .btn {
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.modal .btn-warning {
+    background-color: #ffd700;
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.modal .btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.6);
+}
+
+.modal .btn-secondary {
+    background-color: #2a5298;
+    color: white;
+}
+
+.modal .btn-danger {
+    background-color: #ea4335;
+    color: white;
+}
+
+/* Animation */
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
