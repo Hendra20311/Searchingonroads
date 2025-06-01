@@ -144,6 +144,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         div.appendChild(select);
         div.appendChild(input);
+        connectionsContainer.appendChild(div);
+    }
+
+    function addHeuristicField(target = '', value = '') {
+        const div = document.createElement('div');
+        div.className = 'heuristic-item d-flex align-items-center mb-2 gap-2';
+
+        const label = document.createElement('span');
+        label.textContent = `Ke Kota ${target}:`;
+        label.style.flex = '1';
+
+        const originalInput = document.createElement('input');
+        originalInput.type = 'number';
+        originalInput.value = value;
+        originalInput.min = 0;
+        originalInput.className = 'form-control form-control-sm';
+        originalInput.placeholder = 'Nilai Asli';
+        originalInput.readOnly = true;
+
+        const scaledValue = currentHeuristicScale !== 0 ? (value / currentHeuristicScale).toFixed(2) : value;
+        const scaledInput = document.createElement('input');
+        scaledInput.type = 'number';
+        scaledInput.value = scaledValue;
+        scaledInput.min = 0;
+        scaledInput.className = 'form-control form-control-sm';
+        scaledInput.placeholder = 'Nilai Skala';
+        scaledInput.readOnly = true;
+
+        div.appendChild(label);
+        div.appendChild(originalInput);
+        div.appendChild(scaledInput);
         heuristicsContainer.appendChild(div);
     }
 
@@ -298,27 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
         div.appendChild(select);
         div.appendChild(input);
         connectionsContainer.appendChild(div);
-    }
-
-    function addHeuristicField(target = '', value = '') {
-        const div = document.createElement('div');
-        div.className = 'heuristic-item d-flex align-items-center mb-2 gap-2';
-
-        const label = document.createElement('span');
-        label.textContent = `Ke Kota ${target}:`;
-        label.style.flex = '1';
-
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.value = value;
-        input.min = 0;
-        input.className = 'form-control';
-        input.placeholder = 'Nilai heuristik';
-        input.readOnly = true;
-
-        div.appendChild(label);
-        div.appendChild(input);
-        heuristicsContainer.appendChild(div);
     }
 
     // Pendengar perubahan skala heuristik
